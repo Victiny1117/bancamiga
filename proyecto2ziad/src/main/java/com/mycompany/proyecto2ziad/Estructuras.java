@@ -1,6 +1,7 @@
 package com.mycompany.proyecto2ziad;
 import java.io.*;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class Estructuras {
     /*
@@ -17,6 +18,7 @@ class nodeQ {
         this.name = name;
         this.surname = surname;
         this.age = age;
+        this.next = null;
     }
     }
 
@@ -62,23 +64,33 @@ class list {
     boolean cnull() {
         return start == null;
     }
-
+    
+    nodeLS getStart() {
+        return start;
+    } 
 }
 
 class queue {
 
-    nodeQ front, rear;
-
-    void add(String name, String surname, int age) {
-        if (front == null) {
-            front = rear = new nodeQ(name, surname, age);
-        } else {
-            rear.next = new nodeQ(name, surname, age);
-            rear = rear.next;
-        }
+    nodeQ front, rear, actual;
+    
+    public queue() {
+        this.front = this.rear = this.actual = null;
     }
 
 
+    void add(String name, String surname, int age) {
+        nodeQ  newNode = new nodeQ(name, surname, age);
+        if (front == null) {
+            front = rear = newNode;
+            actual = front;
+        } else {
+            rear.next = newNode;
+            rear = newNode;   
+        }
+        rear.next = null;
+    }
+    
     nodeQ unadd() {
         nodeQ temp = front;
         front = front.next;
@@ -89,6 +101,12 @@ class queue {
     boolean cnull() {
         return front == null;
     }
+    nodeQ cnextnull(nodeQ node) {
+        if (node != null && node.next != null) {
+            return node.next;
+        }
+        return null;
+    }
     void remClient (String remArchName) throws IOException {
         PrintWriter printer = new PrintWriter(new FileWriter(remArchName));
             while (!cnull()) {
@@ -97,11 +115,38 @@ class queue {
                 printer.close();
             }
 }
+    void priorySort(queue prioryQ, int prioryAge) {
+        queue tempQ = new queue(); 
+        while (this.cnull()) {
+            nodeQ node = this.unadd();
+            if (node.age >= prioryAge) {
+                prioryQ.add(node.name, node.surname, node.age);
+            } else {
+                tempQ.add(node.name, node.surname, node.age);
+            }
+        }
+        while (!tempQ.cnull()) {
+            nodeQ node = tempQ.unadd();
+            this.add(node.name, node.surname, node.age);
+        }
+    }
+    void defSort(queue q0, queue q1) {
+        int prioryTurn = 0;
+         while (!this.cnull()) {
+            nodeQ node = this.unadd();
+            q1.add(node.name, node.surname, node.age);
+            prioryTurn++;
+            if (prioryTurn % 4 == 0 && !q0.cnull()) {
+                nodeQ node1 = q1.unadd();
+                q1.add(node1.name, node1.surname, node1.age);
+    }
+    }
+    }
 }
+
 
 class stack {
     nodeLS top = null;
-    PrintWriter printer;
 
     void stack(String name, String surname, String transaction) {
         nodeLS newN = new nodeLS(name, surname, transaction);
@@ -121,12 +166,11 @@ class stack {
     boolean cnull() {
         return top == null;
     }
-    void crLog(String archName) throws IOException {
-        printer = new PrintWriter(new FileWriter(archName));
+    void createLog() throws IOException {
+        archives manageStackLog = new archives();
         while(!cnull()) {
         nodeLS node = unstack();
-        printer.println(node.toString());
-        printer.close();
+        manageStackLog.saveLog(node);
         }
     }
 }
@@ -135,22 +179,22 @@ class stack {
 class archives {
         String name; 
         String surname; 
-        String transaction;
         PrintWriter printer;
         
-    void saveLog() throws IOException {
+    void saveLog(nodeLS node) throws IOException {
         String log;
         String logName = "Taquilla.log";
-        SimpleDateFormat simpDate = new SimpleDateFormat("dd-mm-yyyy");
-        String actDateLogName = "taquilla " + simpDate + ".log";
+        SimpleDateFormat simpDate = new SimpleDateFormat("dd-MM-yyyy");
+        String simpDateName = simpDate.format(new Date());
+        String actDateLogName = "taquilla " + simpDateName + ".log";
         archives saver = new archives();
         File txt = new File(logName);
-        log = name + " " + surname + " Ha realizado " + transaction;
-        if(txt.exists()) {
-            saver.writeLog(actDateLogName, log);
+        log = node.name + " " + node.surname + " ha realizado " + node.transaction;
+        if(!txt.exists()) {
+             saver.writeLog("Taquilla.log", log);
         } else {
-        saver.writeLog("Taquilla.log", log);
-        }
+             saver.writeLog(actDateLogName, log);
+    }
     }
     
     void writeLog(String txtName, String log) throws IOException {
